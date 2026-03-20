@@ -67,9 +67,11 @@ Test name pipeline: raw → normalize → lookup alias → get canonical → con
 
 ### Branch Strategy
 - `main` is the stable branch — always deployable
-- All work happens on feature branches: `feature/<name>` or `fix/<name>`
-  - Examples: `feature/families-api`, `fix/canonicalizer-regex`
+- Create a GitHub issue for every feature or bug before starting work
+- All work happens on feature branches: `feature/<issue-number>-<name>` or `fix/<issue-number>-<name>`
+  - Examples: `feature/1-families-api`, `fix/2-canonicalizer-regex`
 - Merge to main via PR only — no direct commits to main
+- PR description must reference the issue with `Closes #<number>` to auto-close on merge
 - Tag releases as `v<major>.<minor>.<revision>` — no label suffixes
   - `revision` bumps for bug fixes within a phase
   - `minor` bumps at phase completions (Phase 1 → v0.1.0, Phase 2 → v0.2.0, etc.)
