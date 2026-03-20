@@ -1,0 +1,22 @@
+{
+  "conversion_rules": [
+    {
+      "test_pattern": null,
+      "from_unit": "gm/dL",
+      "multiplier": 1.0,
+      "to_unit": "g/dL"
+    },
+    {
+      "test_pattern": "CHOLESTEROL",
+      "from_unit": "mmol/l",
+      "multiplier": 38.67,
+      "to_unit": "mg/dL"
+    },
+    {
+      "test_pattern": "TRIGLYCERIDES",
+      "from_unit": "mmol/l",
+      "multiplier": 88.57,
+      "to_unit": "mg/dL"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "Lipid": [
+    "Total Cholesterol",
+    "HDL Cholesterol",
+    "LDL Cholesterol",
+    "VLDL Cholesterol",
+    "Triglycerides",
+    "Non-HDL Cholesterol"
+  ],
+  "Liver": [
+    "ALT (SGPT)",
+    "AST (SGOT)",
+    "Alkaline Phosphatase",
+    "GGT",
+    "Total Bilirubin",
+    "Direct Bilirubin",
+    "Indirect Bilirubin"
+  ],
+  "Renal": [
+    "BUN",
+    "Creatinine",
+    "Calcium",
+    "Uric Acid",
+    "Urea",
+    "eGFR"
+  ],
+  "Thyroid": [
+    "TSH",
+    "T3",
+    "T4"
+  ]
+}

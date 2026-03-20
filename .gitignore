@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+ENV/
+
+# Backend
+backend/uploads/
+uploads/
+backend/app/extraction/canon_data/canonical_map.json
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+.next/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+.dockerignore
+
+# Database
+*.db
+*.sqlite
+postgres_data/
+
+# Misc
+*.log
+.pytest_cache/
+.coverage
