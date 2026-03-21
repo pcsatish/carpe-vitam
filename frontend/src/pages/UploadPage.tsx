@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import { familiesAPI, type Family, type FamilyMember } from '../api/families'
@@ -20,6 +20,7 @@ export default function UploadPage() {
   const [showCreateFamily, setShowCreateFamily] = useState(false)
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     familiesAPI.listFamilies().then(
@@ -209,12 +210,19 @@ export default function UploadPage() {
             <div>
               <label style={labelStyle}>PDF File</label>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".pdf"
                 onChange={handleFileChange}
-                style={{ ...inputStyle, cursor: 'pointer' }}
+                style={{ display: 'none' }}
               />
-              {file && <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#9ca3af' }}>Selected: {file.name}</p>}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{ width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: file ? '#ffffff' : '#6b7280', fontSize: '0.875rem', textAlign: 'left', cursor: 'pointer' }}
+              >
+                {file ? file.name : 'Choose PDF file...'}
+              </button>
             </div>
 
             {error && (
