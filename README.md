@@ -19,7 +19,7 @@ docker-compose up
 - API: http://localhost:8000/api/v1
 - API Docs: http://localhost:8000/docs
 
-> **Note**: Uploading PDFs requires a `family_member_id`. Until the families API is built (v0.2.0), create one directly in the database or via the API docs at `/docs`.
+> **Note**: Before uploading a PDF, create a family and add a member via the dashboard or API docs at `/docs`. The upload form includes family/member selection.
 
 ## Project Structure
 
@@ -50,7 +50,11 @@ carpe-vitam/
 | POST | `/api/v1/auth/register` | Register |
 | POST | `/api/v1/auth/login` | Login (returns JWT) |
 | GET | `/api/v1/auth/me` | Current user |
-| POST | `/api/v1/uploads?family_member_id=` | Upload PDF |
+| POST | `/api/v1/families` | Create a family |
+| GET | `/api/v1/families` | List user's families |
+| POST | `/api/v1/families/{id}/members` | Add a family member |
+| GET | `/api/v1/families/{id}/members` | List family members |
+| POST | `/api/v1/uploads` | Upload PDF (requires family_member_id) |
 | GET | `/api/v1/results?family_member_id=` | List results |
 | GET | `/api/v1/results/timeseries?family_member_id=` | Time-series data |
 
@@ -85,7 +89,7 @@ cd backend && source .venv/bin/activate && python -m scripts.seed_analytes
 
 ## Roadmap
 
-- **v0.2.0** — Family & member management API
-- **v0.3.0** — Lab-specific extractors (Thyrocare, Redcliffe), expanded analyte catalog
-- **v0.4.0** — Reference ranges, out-of-range highlighting
-- Later — Async extraction (Celery), CSV/HL7 support, cloud deployment
+- **v0.1.0** ✅ — Core MVP: auth, upload, extraction, results API
+- **v0.2.0** ✅ — Families API, lab-specific extractors, analyte catalog, dashboard redesign
+- **v0.3.0** — Dashboard quality: report dates, trend indicators, analyte detail view
+- **v0.4.0** — Async extraction (Celery + Redis), admin dashboard

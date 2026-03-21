@@ -1,6 +1,6 @@
 # Carpe Vitam - Implementation Status
 
-**Last Updated**: 2026-03-20 (20:30 UTC)
+**Last Updated**: 2026-03-21
 **Phase**: Phase 2 - Complete & Ready for v0.2.0
 
 ---
@@ -41,7 +41,7 @@
 ### Infrastructure Added
 - `scripts/setup.sh` — One-command development setup (venv + deps + seed)
 - `SETUP.md` — Detailed setup instructions and troubleshooting
-- `backend/api/families.ts` — Typed families API client
+- `frontend/src/api/families.ts` — Typed families API client
 
 ### Testing & Validation
 - ✅ All code imports successfully

@@ -18,7 +18,10 @@
   - Use `useState` + async API calls for transient UI state (loading, errors)
   - Never duplicate server state in local state (keep dropdowns/lists fresh by re-fetching)
   - TanStack Query available for caching if performance requires it (Phase 3+)
-- **Styling**: Tailwind only; no inline styles or CSS-in-JS
+- **Styling**: Tailwind for existing files; **use inline styles for any new component files**
+  - WSL2/Docker limitation: Vite's Tailwind JIT cannot watch new files via inotify — classes in new `.tsx` files are silently ignored even after a full `--build` rebuild
+  - Polling (`usePolling: true` in `vite.config.ts`) fixes hot-reload for edits but does NOT fix JIT scanning of new files
+  - Workaround: use inline `style={{}}` props for all colour/background/border in new components
 - **No over-engineering**: Simple forms are fine as inline components. Avoid premature abstraction
 
 ### Database
