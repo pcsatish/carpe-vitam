@@ -14,14 +14,16 @@
 - **Strict mode**: Always use TypeScript strict mode, no `any` types
 - **Component structure**: Keep components focused; extract logic to hooks and API clients
 - **State management**:
-  - Use Zustand for client state (auth, UI preferences)
-  - Use TanStack Query for server state (results, uploads)
-  - Never duplicate server state in local state
+  - Use Zustand for client state (auth, UI preferences, selections)
+  - Use `useState` + async API calls for transient UI state (loading, errors)
+  - Never duplicate server state in local state (keep dropdowns/lists fresh by re-fetching)
+  - TanStack Query available for caching if performance requires it (Phase 3+)
 - **Styling**: Tailwind only; no inline styles or CSS-in-JS
 - **No over-engineering**: Simple forms are fine as inline components. Avoid premature abstraction
 
 ### Database
 - **Migrations**: Use Alembic for all schema changes (`alembic revision --autogenerate -m "..."`)
+- **Seeding**: Use Python scripts in `backend/scripts/` for data (not fixtures). Scripts must be idempotent (safe to run multiple times)
 - **Indexes**: Add indexes on foreign keys and frequently filtered columns
 - **Soft deletes**: Use `is_deleted` flag for auditable soft deletes (lab_reports, not test_results)
 - **Denormalization**: Only for performance (report_date in test_results for time-series queries)
@@ -44,9 +46,10 @@ result = await db.execute(
 ### Extraction Pipeline (Strategy + Registry)
 Add new lab extractors by:
 1. Create `backend/app/extraction/extractors/my_lab_pdf.py`
-2. Extend `BaseExtractor`
+2. Extend `BaseExtractor` with `can_handle()` and `extract()` methods
 3. Decorate with `@ExtractorRegistry.register`
-4. Set `priority` lower than GenericPDFExtractor (999) for priority order
+4. Set `priority` — lower number = tried first. GenericPDFExtractor is 999 (fallback)
+5. Import in `backend/app/extraction/extractors/__init__.py` so it auto-registers on import
 
 **Example**:
 ```python
@@ -54,6 +57,29 @@ Add new lab extractors by:
 class ThyrocarePDFExtractor(BaseExtractor):
     name = "ThyrocarePDFExtractor"
     priority = 100  # Higher priority than generic (lower number = tried first)
+
+    @classmethod
+    def can_handle(cls, file_path: str, text_sample: str) -> bool:
+        # Return True if text_sample contains lab-specific markers
+        return "THYROCARE" in text_sample.upper()
+
+    async def extract(self, file_path: str) -> ExtractorOutput:
+        # Implement extraction logic
+        pass
+```
+
+### Authorization Pattern (Families/Multi-user)
+For endpoints requiring membership checks:
+1. Helper function `_require_membership(db, resource_id, user_id)` — returns member or 404
+2. Helper function `_require_admin(db, resource_id, user_id)` — checks role or 403
+3. Always check membership before returning data (prevents info leaks)
+
+**Example**:
+```python
+@router.post("/families/{family_id}/members")
+async def add_member(family_id: str, ..., current_user=Depends(get_current_user)):
+    await _require_admin(db, family_id, current_user.id)  # 403 if not admin
+    # Safe to proceed with family operations
 ```
 
 ### Canonicalization (Name Normalization)
@@ -95,9 +121,12 @@ Test name pipeline: raw → normalize → lookup alias → get canonical → con
 
 - **Before submitting work**: Run `docker-compose up` and test the full workflow
   - Register → Upload PDF → Check extraction
-- **Backend tests**: `pytest -v` from backend/
-- **Frontend tests**: Not yet required for MVP, but plan for Phase 2
+- **Backend tests**: Activate venv, then `pytest -v` from backend/
+  - Tests require PostgreSQL running: `docker-compose up postgres`
+  - Use conftest.py fixtures for async DB setup
+- **Frontend tests**: Not yet required, but plan for Phase 2
 - **Database**: Always test migrations on a fresh database
+- **Virtual environment**: Always use `python3.12 -m venv` for isolation
 
 ## Phase-Based Development
 
@@ -149,6 +178,6 @@ npm run dev
 ## When to Escalate
 
 - Architecture changes (new tables, major refactor)
-- Phase transitions (moving to Phase 2)
+- Phase transitions (moving to Phase 3)
 - Production deployment decisions
 - Security/privacy considerations

@@ -34,6 +34,9 @@ class TimeSeriesSeries(BaseModel):
     analyte_id: str
     analyte_name: str
     unit: str
+    category: str | None
+    ref_low: float | None
+    ref_high: float | None
     datapoints: list[TimeSeriesDatapoint]
 
 

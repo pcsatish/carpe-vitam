@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import date
 from typing import Optional
 
 
@@ -24,7 +25,7 @@ class ExtractorOutput:
     """Output from an extractor."""
 
     patient_name: Optional[str]
-    report_date: Optional[str]
+    report_date: Optional[date]
     lab_name: Optional[str]
     tests: list[ExtractedTestResult]
     extraction_notes: str = ""

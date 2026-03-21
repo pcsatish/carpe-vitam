@@ -119,10 +119,17 @@ async def get_timeseries(
             for tr in data["datapoints"]
         ]
 
+        # Use ref range from most recent datapoint (same for all)
+        ref_low = data["datapoints"][-1].ref_low if data["datapoints"] else None
+        ref_high = data["datapoints"][-1].ref_high if data["datapoints"] else None
+
         series.append(TimeSeriesSeries(
             analyte_id=analyte.id,
             analyte_name=analyte.canonical_name,
             unit=analyte.canonical_unit,
+            category=analyte.category,
+            ref_low=ref_low,
+            ref_high=ref_high,
             datapoints=datapoints,
         ))
 

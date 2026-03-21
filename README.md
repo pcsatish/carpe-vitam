@@ -56,15 +56,31 @@ carpe-vitam/
 
 ## Development
 
+### Setup (First Time)
+
+**Automated**:
 ```bash
-# Lint & format
+bash scripts/setup.sh
+```
+
+Creates virtual environment, installs dependencies, seeds database (if PostgreSQL is running).
+
+**Manual**: See `SETUP.md` for detailed steps and troubleshooting.
+
+### Common Tasks
+
+```bash
+# Lint & format (requires ruff installed)
 cd backend && ruff check . && ruff format .
 
-# Tests
-cd backend && pytest -v
+# Tests (requires venv activated)
+cd backend && source .venv/bin/activate && pytest -v
 
 # New migration
 cd backend && alembic revision --autogenerate -m "description"
+
+# Seed analyte catalog
+cd backend && source .venv/bin/activate && python -m scripts.seed_analytes
 ```
 
 ## Roadmap

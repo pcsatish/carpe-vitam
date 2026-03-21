@@ -12,7 +12,7 @@ class ExtractionPipeline:
     def __init__(self):
         """Initialize the pipeline."""
         # Import extractors to register them
-        from .extractors import generic_pdf  # noqa
+        from . import extractors  # noqa: F401
 
     async def extract(self, file_path: str) -> ExtractorOutput:
         """
