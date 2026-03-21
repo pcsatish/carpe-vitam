@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Query
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("", response_model=UploadResponseSchema)
 async def upload_pdf(
     file: UploadFile = File(...),
-    family_member_id: str = Query(...),
+    family_member_id: str = Form(...),
     db: AsyncSession = Depends(get_db_session),
     current_user = Depends(get_current_user),
 ):
