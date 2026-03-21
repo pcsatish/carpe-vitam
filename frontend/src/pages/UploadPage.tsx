@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import { familiesAPI, type Family, type FamilyMember } from '../api/families'
@@ -10,7 +10,6 @@ export default function UploadPage() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [error, setError] = useState('')
 
-  // Family/member selection
   const [families, setFamilies] = useState<Family[]>([])
   const [selectedFamilyId, setSelectedFamilyId] = useState('')
   const [members, setMembers] = useState<FamilyMember[]>([])
@@ -18,22 +17,20 @@ export default function UploadPage() {
   const [loadingFamilies, setLoadingFamilies] = useState(true)
   const [familiesError, setFamiliesError] = useState('')
 
-  // Create-family inline form
   const [showCreateFamily, setShowCreateFamily] = useState(false)
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     familiesAPI.listFamilies().then(
       (data) => {
-        console.log('Families loaded:', data)
         setFamilies(data)
         if (data.length > 0) setSelectedFamilyId(data[0].id)
       }
     ).catch(
       (err) => {
         const msg = err?.response?.data?.detail || err?.message || 'Unknown error'
-        console.error('Failed to load families:', msg)
         setFamiliesError(msg)
       }
     ).finally(
@@ -108,38 +105,44 @@ export default function UploadPage() {
     }
   }
 
+  const inputStyle = { width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: '#ffffff', fontSize: '0.875rem', boxSizing: 'border-box' as const }
+  const labelStyle = { display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.5rem' }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Upload Lab Report</h1>
-          <button onClick={() => navigate('/dashboard')} className="text-blue-600 hover:underline">
-            Back to Dashboard
+    <div style={{ minHeight: '100vh', backgroundColor: '#030712' }}>
+      <header style={{ backgroundColor: '#111827', borderBottom: '1px solid #1f2937' }}>
+        <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#ffffff' }}>Upload Lab Report</h1>
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{ color: '#60a5fa', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}
+          >
+            ← Back to Dashboard
           </button>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+      <main style={{ maxWidth: '42rem', margin: '0 auto', padding: '2rem 1rem' }}>
+        <div style={{ backgroundColor: '#111827', borderRadius: '0.75rem', border: '1px solid #1f2937', padding: '2rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
             {/* Family selector */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Family</label>
+              <label style={labelStyle}>Family</label>
               {familiesError && (
-                <div className="mb-3 p-3 bg-red-100 text-red-700 text-sm rounded">
+                <div style={{ marginBottom: '0.75rem', padding: '0.75rem', backgroundColor: '#7f1d1d', color: '#fca5a5', fontSize: '0.875rem', borderRadius: '0.375rem' }}>
                   Error loading families: {familiesError}
                 </div>
               )}
               {loadingFamilies ? (
-                <p className="text-sm text-gray-500">Loading families...</p>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Loading families...</p>
               ) : families.length === 0 ? (
-                <p className="text-sm text-gray-500">No families yet.</p>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>No families yet.</p>
               ) : (
                 <select
                   value={selectedFamilyId}
                   onChange={(e) => setSelectedFamilyId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  style={inputStyle}
                 >
                   {families.map((f) => (
                     <option key={f.id} value={f.id}>{f.name}</option>
@@ -151,31 +154,31 @@ export default function UploadPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateFamily(true)}
-                  className="mt-2 text-sm text-blue-600 hover:underline"
+                  style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#60a5fa', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                 >
                   + Create new family
                 </button>
               ) : (
-                <div className="mt-2 flex gap-2">
+                <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
                   <input
                     type="text"
                     value={newFamilyName}
                     onChange={(e) => setNewFamilyName(e.target.value)}
                     placeholder="Family name"
-                    className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm"
+                    style={{ flex: 1, padding: '0.25rem 0.75rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: '#ffffff', fontSize: '0.875rem' }}
                   />
                   <button
                     type="button"
                     onClick={handleCreateFamily}
                     disabled={creatingFamily}
-                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+                    style={{ padding: '0.25rem 0.75rem', backgroundColor: creatingFamily ? '#374151' : '#2563eb', color: '#ffffff', fontSize: '0.875rem', borderRadius: '0.375rem', border: 'none', cursor: creatingFamily ? 'not-allowed' : 'pointer' }}
                   >
                     {creatingFamily ? 'Creating...' : 'Create'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowCreateFamily(false)}
-                    className="px-3 py-1 text-sm text-gray-600 hover:underline"
+                    style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer' }}
                   >
                     Cancel
                   </button>
@@ -186,14 +189,14 @@ export default function UploadPage() {
             {/* Member selector */}
             {selectedFamilyId && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">For</label>
+                <label style={labelStyle}>For</label>
                 {members.length === 0 ? (
-                  <p className="text-sm text-gray-500">No members in this family.</p>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>No members in this family.</p>
                 ) : (
                   <select
                     value={selectedMemberId}
                     onChange={(e) => setSelectedMemberId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    style={inputStyle}
                   >
                     {members.map((m) => (
                       <option key={m.id} value={m.id}>{m.display_name}</option>
@@ -205,34 +208,45 @@ export default function UploadPage() {
 
             {/* File input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">PDF File</label>
+              <label style={labelStyle}>PDF File</label>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".pdf"
                 onChange={handleFileChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                style={{ display: 'none' }}
               />
-              {file && <p className="mt-2 text-sm text-gray-600">Selected: {file.name}</p>}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{ width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: file ? '#ffffff' : '#6b7280', fontSize: '0.875rem', textAlign: 'left', cursor: 'pointer' }}
+              >
+                {file ? file.name : 'Choose PDF file...'}
+              </button>
             </div>
 
-            {error && <div className="p-4 bg-red-100 text-red-700 rounded">{error}</div>}
+            {error && (
+              <div style={{ padding: '1rem', backgroundColor: '#7f1d1d', color: '#fca5a5', borderRadius: '0.375rem' }}>
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={!file || uploading || !selectedMemberId}
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              style={{ width: '100%', padding: '0.625rem', backgroundColor: (!file || uploading || !selectedMemberId) ? '#374151' : '#2563eb', color: '#ffffff', borderRadius: '0.375rem', border: 'none', cursor: (!file || uploading || !selectedMemberId) ? 'not-allowed' : 'pointer', fontWeight: 500 }}
             >
               {uploading ? 'Uploading...' : 'Upload PDF'}
             </button>
           </form>
 
           {uploadStatus === 'success' && (
-            <div className="mt-8 p-4 bg-green-100 text-green-700 rounded">
-              <h3 className="font-bold mb-2">Upload Successful!</h3>
+            <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#14532d', borderRadius: '0.375rem', color: '#86efac' }}>
+              <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Upload Successful!</h3>
               <p>Your lab report has been uploaded and queued for extraction.</p>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="mt-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                style={{ marginTop: '1rem', padding: '0.5rem 1rem', backgroundColor: '#16a34a', color: '#ffffff', borderRadius: '0.375rem', border: 'none', cursor: 'pointer' }}
               >
                 Return to Dashboard
               </button>
@@ -240,9 +254,9 @@ export default function UploadPage() {
           )}
         </div>
 
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-bold text-blue-900 mb-2">Supported Formats</h3>
-          <p className="text-blue-800">
+        <div style={{ marginTop: '2rem', backgroundColor: '#111827', border: '1px solid #1e3a5f', borderRadius: '0.75rem', padding: '1.5rem' }}>
+          <h3 style={{ fontWeight: 700, color: '#93c5fd', marginBottom: '0.5rem' }}>Supported Formats</h3>
+          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
             Currently, we support PDF lab reports from various sources. The system will automatically
             extract test results and map them to standard categories.
           </p>

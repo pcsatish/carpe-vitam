@@ -1,7 +1,7 @@
 # Carpe Vitam - Implementation Status
 
 **Last Updated**: 2026-03-21
-**Phase**: Phase 2 - Complete & Ready for v0.2.0
+**Phase**: Phase 3 - In Progress (Dashboard Quality)
 
 ---
 
@@ -191,14 +191,17 @@
 - Seed scripts should eventually become Alembic data migrations (track state in DB)
 - Consider TanStack Query for caching if chart re-renders become expensive
 
-## Next Phase (Phase 3 — Dashboard Quality)
+## Phase 3 — In Progress (Dashboard Quality)
 
-1. **Fix report dates** — x-axis is currently null for most extractors; date parsing must work before trend features are useful
-2. **Trend indicators** — improving / stable / worsening arrow per analyte based on last 2+ readings
-3. **Expanded analyte detail view** — click a card to see full history table + larger chart
-4. **% deviation from optimal** — show "12% above upper limit" alongside Low/High badge
-5. **Category summary row** — "3 of 7 Lipid markers out of range" at the top of each group
-6. **Lab report linkage** — tooltip on each chart data point shows which report it came from
+| Issue | Feature | Status |
+|-------|---------|--------|
+| #7 | UI consistency: dark theme across all pages | ✅ Done |
+| #8 | Fix report dates (hard dependency for trend features) | 🔄 In Progress |
+| #9 | Trend indicators per analyte | ⬜ Pending #8 |
+| #10 | Analyte detail view (history table + larger chart) | ⬜ Pending #8 |
+| #11 | % deviation from optimal range | ⬜ Pending |
+| #12 | Category summary row | ⬜ Pending |
+| #13 | Lab report linkage on chart tooltips | ⬜ Pending #8 |
 
 ---
 
