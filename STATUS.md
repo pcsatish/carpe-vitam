@@ -187,18 +187,18 @@
 - Extractor registry pattern — easy to add new labs without modifying core pipeline
 
 **For Phase 3**:
-- Async extraction (Celery) will need job queue and status polling on frontend
-- CSV/Excel support will need new extractors following same pattern
+- Report dates must be fixed first — x-axis is meaningless without real dates
 - Seed scripts should eventually become Alembic data migrations (track state in DB)
 - Consider TanStack Query for caching if chart re-renders become expensive
 
-## Next Phase (Phase 3)
+## Next Phase (Phase 3 — Dashboard Quality)
 
-1. **Family Management**: Add `/api/v1/families` and `/api/v1/family-members` endpoints
-2. **Lab-Specific Extractors**: Thyrocare, Redcliffe PDFs (date parsing, better table extraction)
-3. **Expand Analyte Catalog**: Seed ~75 tests from `unique_analytes.json`
-4. **Reference Ranges**: Visualization + out-of-range highlighting
-5. **Related Tests Panel**: Show tests that typically go together
+1. **Fix report dates** — x-axis is currently null for most extractors; date parsing must work before trend features are useful
+2. **Trend indicators** — improving / stable / worsening arrow per analyte based on last 2+ readings
+3. **Expanded analyte detail view** — click a card to see full history table + larger chart
+4. **% deviation from optimal** — show "12% above upper limit" alongside Low/High badge
+5. **Category summary row** — "3 of 7 Lipid markers out of range" at the top of each group
+6. **Lab report linkage** — tooltip on each chart data point shows which report it came from
 
 ---
 

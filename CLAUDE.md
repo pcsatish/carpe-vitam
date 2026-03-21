@@ -135,17 +135,24 @@ Test name pipeline: raw → normalize → lookup alias → get canonical → con
 - Focus: end-to-end working workflow
 - No: family management, multiple extractors, reference ranges
 
-### Phase 2 (Next)
-- Family & member management (add router: `/api/v1/families`)
+### Phase 2 (COMPLETE)
+- Family & member management (`/api/v1/families`)
 - Lab-specific extractors (Thyrocare, Redcliffe)
 - Reference range visualization
-- Extended analyte catalog (~75 tests)
+- Extended analyte catalog (44 analytes, 12 categories)
+- Dashboard redesign: analyte cards with sparklines and status badges
 
-### Phase 3 (Future)
+### Phase 3 (Next) — Dashboard Quality
+- Fix report dates so the x-axis is meaningful (currently null for most extractors)
+- Trend indicators per analyte (improving / stable / worsening arrow based on last 2+ readings)
+- Expanded analyte detail view: click a card to see full history table + larger chart
+- % deviation from optimal range (e.g. "12% above upper limit") alongside Low/High badge
+- Category summary row: "3 of 7 Lipid markers out of range"
+- Lab report linkage: tooltip on each data point shows which report it came from
+
+### Phase 4 (Future)
 - Async extraction (Celery + Redis)
-- CSV/Excel/HL7 support
 - Admin dashboard
-- Cloud deployment (S3, AWS)
 
 ## Reference Files from Legacy Project
 
