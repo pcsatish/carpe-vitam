@@ -195,8 +195,8 @@
 
 | Issue | Feature | Status |
 |-------|---------|--------|
-| #7 | UI consistency: dark theme across all pages | 🔄 In Progress |
-| #8 | Fix report dates (hard dependency for trend features) | ⬜ Pending |
+| #7 | UI consistency: dark theme across all pages | ✅ Done |
+| #8 | Fix report dates (hard dependency for trend features) | 🔄 In Progress |
 | #9 | Trend indicators per analyte | ⬜ Pending #8 |
 | #10 | Analyte detail view (history table + larger chart) | ⬜ Pending #8 |
 | #11 | % deviation from optimal range | ⬜ Pending |
