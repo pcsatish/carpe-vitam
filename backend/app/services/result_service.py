@@ -60,6 +60,7 @@ class ResultService:
 
             # Canonicalize and persist test results
             test_results = []
+            seen_analyte_ids: set[str] = set()
             for extracted_test in extractor_output.tests:
                 # Lookup canonical name and analyte ID
                 canonical_name, analyte_id = await Canonicalizer.lookup_canonical(
@@ -72,6 +73,12 @@ class ResultService:
                     # Skip unmapped analytes for now
                     # In Phase 3, we'll queue these for manual review
                     continue
+
+                if analyte_id in seen_analyte_ids:
+                    # Skip duplicate analytes within the same report (e.g. same test
+                    # appearing in both a summary table and a detail table in the PDF)
+                    continue
+                seen_analyte_ids.add(analyte_id)
 
                 # Convert units
                 canonical_value, canonical_unit = UnitConverter.convert(
