@@ -106,6 +106,11 @@ Test name pipeline: raw → normalize → lookup alias → get canonical → con
   - `minor` bumps at phase completions (Phase 1 → v0.1.0, Phase 2 → v0.2.0, etc.)
   - `major` stays 0 until a significant milestone (production-ready, public release, architectural overhaul) — suggest the bump, don't assume it
 
+### Hard Gates (non-negotiable before acting)
+
+1. **Before every `git commit`**: run `git branch` and confirm you are NOT on `main`. If on main, stop and create a branch. No exceptions — docs, STATUS.md, and CLAUDE.md changes all require a branch and PR.
+2. **Before every `gh pr create`**: check off every item in the PR test plan using CLI tools (`tsc --noEmit`, `docker exec`, `psql`, `grep`). Items that are genuinely visual-only must be explicitly flagged for the user to verify. Do not open the PR until all non-visual items are confirmed passing.
+
 ### Commit Hygiene
 - **Commit frequency**: Small, focused commits (one feature/fix per commit)
 - **Commit messages**: Imperative mood, reference what changed and why
