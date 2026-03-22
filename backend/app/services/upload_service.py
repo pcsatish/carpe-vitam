@@ -2,8 +2,9 @@
 
 import uuid
 import os
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -27,6 +28,7 @@ class UploadService:
         filename: str,
         family_member_id: str,
         uploaded_by_user_id: str,
+        report_date: Optional[date] = None,
     ) -> LabReport:
         """
         Receive and store an uploaded PDF.
@@ -61,6 +63,7 @@ class UploadService:
             uploaded_by_user_id=uploaded_by_user_id,
             original_filename=filename,
             storage_path=storage_path,
+            report_date=report_date,  # user-provided fallback; overwritten if extractor finds a date
             extraction_status=ExtractionStatus.PENDING,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),

@@ -1,3 +1,6 @@
+from datetime import date
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +19,7 @@ router = APIRouter()
 async def upload_pdf(
     file: UploadFile = File(...),
     family_member_id: str = Form(...),
+    report_date: Optional[date] = Form(None),
     db: AsyncSession = Depends(get_db_session),
     current_user = Depends(get_current_user),
 ):
@@ -35,6 +39,7 @@ async def upload_pdf(
             filename=file.filename,
             family_member_id=family_member_id,
             uploaded_by_user_id=current_user.id,
+            report_date=report_date,
         )
 
         # Trigger extraction synchronously (Phase 3 will use async queue)
