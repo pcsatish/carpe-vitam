@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import apiClient from '../api/client'
 import { familiesAPI, type Family, type FamilyMember } from '../api/families'
 
+type FileStatus = 'queued' | 'uploading' | 'done' | 'error'
+interface FileEntry { file: File; status: FileStatus; error?: string }
+
 export default function UploadPage() {
   const navigate = useNavigate()
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<FileEntry[]>([])
   const [reportDate, setReportDate] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [allDone, setAllDone] = useState(false)
   const [error, setError] = useState('')
 
   const [families, setFamilies] = useState<Family[]>([])
@@ -71,40 +74,42 @@ export default function UploadPage() {
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFile(e.target.files[0])
-      setUploadStatus('idle')
+    if (e.target.files && e.target.files.length > 0) {
+      const entries: FileEntry[] = Array.from(e.target.files).map((f) => ({ file: f, status: 'queued' }))
+      setFiles(entries)
+      setAllDone(false)
       setError('')
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file) { setError('Please select a file'); return }
+    if (files.length === 0) { setError('Please select at least one file'); return }
     if (!selectedMemberId) { setError('Please select a family member'); return }
 
     setUploading(true)
-    setUploadStatus('uploading')
     setError('')
 
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('family_member_id', selectedMemberId)
-      if (reportDate) formData.append('report_date', reportDate)
-
-      await apiClient.post('/uploads', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-
-      setUploadStatus('success')
-    } catch (err: unknown) {
-      setUploadStatus('error')
-      const message = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-      setError(message || 'Upload failed')
-    } finally {
-      setUploading(false)
+    const updated = [...files]
+    for (let i = 0; i < updated.length; i++) {
+      updated[i] = { ...updated[i], status: 'uploading' }
+      setFiles([...updated])
+      try {
+        const formData = new FormData()
+        formData.append('file', updated[i].file)
+        formData.append('family_member_id', selectedMemberId)
+        if (reportDate) formData.append('report_date', reportDate)
+        await apiClient.post('/uploads', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+        updated[i] = { ...updated[i], status: 'done' }
+      } catch (err: unknown) {
+        const message = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+        updated[i] = { ...updated[i], status: 'error', error: message || 'Upload failed' }
+      }
+      setFiles([...updated])
     }
+
+    setUploading(false)
+    setAllDone(true)
   }
 
   const inputStyle = { width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: '#ffffff', fontSize: '0.875rem', boxSizing: 'border-box' as const }
@@ -210,21 +215,36 @@ export default function UploadPage() {
 
             {/* File input */}
             <div>
-              <label style={labelStyle}>PDF File</label>
+              <label style={labelStyle}>PDF Files</label>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".pdf"
+                multiple
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
               />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                style={{ width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: file ? '#ffffff' : '#6b7280', fontSize: '0.875rem', textAlign: 'left', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '0.5rem 0.75rem', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: files.length > 0 ? '#ffffff' : '#6b7280', fontSize: '0.875rem', textAlign: 'left', cursor: 'pointer' }}
               >
-                {file ? file.name : 'Choose PDF file...'}
+                {files.length > 0 ? `${files.length} file${files.length > 1 ? 's' : ''} selected` : 'Choose PDF files...'}
               </button>
+              {files.length > 0 && (
+                <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  {files.map((entry, i) => {
+                    const statusColor = entry.status === 'done' ? '#86efac' : entry.status === 'error' ? '#fca5a5' : entry.status === 'uploading' ? '#93c5fd' : '#9ca3af'
+                    const statusLabel = entry.status === 'done' ? '✓' : entry.status === 'error' ? '✗' : entry.status === 'uploading' ? '⟳' : '·'
+                    return (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#d1d5db', padding: '0.25rem 0.5rem', backgroundColor: '#1f2937', borderRadius: '0.25rem' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{entry.file.name}</span>
+                        <span style={{ color: statusColor, marginLeft: '0.5rem', flexShrink: 0 }}>{statusLabel} {entry.status}{entry.error ? `: ${entry.error}` : ''}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Report date (optional fallback if extraction fails) */}
@@ -248,17 +268,19 @@ export default function UploadPage() {
 
             <button
               type="submit"
-              disabled={!file || uploading || !selectedMemberId}
-              style={{ width: '100%', padding: '0.625rem', backgroundColor: (!file || uploading || !selectedMemberId) ? '#374151' : '#2563eb', color: '#ffffff', borderRadius: '0.375rem', border: 'none', cursor: (!file || uploading || !selectedMemberId) ? 'not-allowed' : 'pointer', fontWeight: 500 }}
+              disabled={files.length === 0 || uploading || !selectedMemberId}
+              style={{ width: '100%', padding: '0.625rem', backgroundColor: (files.length === 0 || uploading || !selectedMemberId) ? '#374151' : '#2563eb', color: '#ffffff', borderRadius: '0.375rem', border: 'none', cursor: (files.length === 0 || uploading || !selectedMemberId) ? 'not-allowed' : 'pointer', fontWeight: 500 }}
             >
-              {uploading ? 'Uploading...' : 'Upload PDF'}
+              {uploading ? 'Uploading...' : `Upload ${files.length > 1 ? `${files.length} PDFs` : 'PDF'}`}
             </button>
           </form>
 
-          {uploadStatus === 'success' && (
+          {allDone && (
             <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#14532d', borderRadius: '0.375rem', color: '#86efac' }}>
-              <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Upload Successful!</h3>
-              <p>Your lab report has been uploaded and queued for extraction.</p>
+              <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
+                {files.every(f => f.status === 'done') ? 'All uploads successful!' : 'Uploads complete with some errors'}
+              </h3>
+              <p>{files.filter(f => f.status === 'done').length} of {files.length} file{files.length > 1 ? 's' : ''} uploaded successfully.</p>
               <button
                 onClick={() => navigate('/dashboard')}
                 style={{ marginTop: '1rem', padding: '0.5rem 1rem', backgroundColor: '#16a34a', color: '#ffffff', borderRadius: '0.375rem', border: 'none', cursor: 'pointer' }}
