@@ -15,6 +15,7 @@
 | #8 | Fix report dates | ✅ Done |
 | #10 | Analyte detail view (history table + larger chart) | ✅ Done |
 | #20 | Fix duplicate analytes per report | ✅ Done |
+| #24 | Family member management: add users by email, empty-state for new users | ✅ Done |
 | #9 | Trend indicators per analyte | ⬜ Pending |
 | #11 | % deviation from optimal range | ⬜ Pending |
 | #12 | Category summary row | ⬜ Pending |
