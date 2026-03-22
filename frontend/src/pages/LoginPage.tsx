@@ -18,13 +18,15 @@ export default function LoginPage() {
 
     try {
       const response = await authAPI.login({ email, password })
+      setAuth(null, response.access_token)
+      const userInfo = await authAPI.getCurrentUser()
       setAuth(
         {
-          id: '',
-          email,
-          display_name: '',
-          is_active: true,
-          is_admin: false,
+          id: userInfo.id,
+          email: userInfo.email,
+          display_name: userInfo.display_name,
+          is_active: userInfo.is_active,
+          is_admin: userInfo.is_admin,
         },
         response.access_token
       )
