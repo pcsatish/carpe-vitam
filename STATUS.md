@@ -3,6 +3,7 @@
 **Last Updated**: 2026-03-22
 **Phase**: Phase 3 — Dashboard Quality (in progress)
 **Tag**: v0.2.1
+**CLAUDE.md**: Hard gates added (#21) — branch check before commit, test plan before PR
 
 ---
 
