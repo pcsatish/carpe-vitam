@@ -1,11 +1,10 @@
 """Thyrocare PDF extractor."""
 
 import re
-from datetime import date
 from typing import Optional
 import pdfplumber
 
-from ..base import BaseExtractor, ExtractorOutput, ExtractedTestResult
+from ..base import BaseExtractor, ExtractorOutput, ExtractedTestResult, extract_report_date
 from ..registry import ExtractorRegistry
 
 
@@ -37,7 +36,7 @@ class ThyrocarePDFExtractor(BaseExtractor):
                         full_text += text + "\n"
 
                 patient_name = self._extract_patient_name(full_text)
-                report_date = self._extract_date(full_text)
+                report_date = extract_report_date(full_text)
                 tests = await self._extract_from_tables(pdf)
 
                 if not tests:
@@ -70,29 +69,6 @@ class ThyrocarePDFExtractor(BaseExtractor):
             match = re.search(pattern, text)
             if match:
                 return match.group(1).strip()
-        return None
-
-    def _extract_date(self, text: str) -> Optional[date]:
-        from datetime import datetime
-        # Thyrocare uses "DD Mon YYYY", "DD Mon, YYYY", or "DD/MM/YYYY"
-        for pattern, fmt in [
-            (r"\d{2} \w{3},? \d{4}", None),
-            (r"\d{2}/\d{2}/\d{4}", "%d/%m/%Y"),
-        ]:
-            match = re.search(pattern, text)
-            if not match:
-                continue
-            raw = match.group(0).replace(",", "")
-            if fmt:
-                try:
-                    return datetime.strptime(raw, fmt).date()
-                except ValueError:
-                    continue
-            for f in ("%d %b %Y", "%d %B %Y"):
-                try:
-                    return datetime.strptime(raw, f).date()
-                except ValueError:
-                    continue
         return None
 
     async def _extract_from_tables(self, pdf) -> list[ExtractedTestResult]:

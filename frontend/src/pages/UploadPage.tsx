@@ -6,6 +6,7 @@ import { familiesAPI, type Family, type FamilyMember } from '../api/families'
 export default function UploadPage() {
   const navigate = useNavigate()
   const [file, setFile] = useState<File | null>(null)
+  const [reportDate, setReportDate] = useState('')
   const [uploading, setUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [error, setError] = useState('')
@@ -90,6 +91,7 @@ export default function UploadPage() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('family_member_id', selectedMemberId)
+      if (reportDate) formData.append('report_date', reportDate)
 
       await apiClient.post('/uploads', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -223,6 +225,19 @@ export default function UploadPage() {
               >
                 {file ? file.name : 'Choose PDF file...'}
               </button>
+            </div>
+
+            {/* Report date (optional fallback if extraction fails) */}
+            <div>
+              <label style={labelStyle}>
+                Report Date <span style={{ color: '#6b7280', fontWeight: 400 }}>(optional — used if not found in PDF)</span>
+              </label>
+              <input
+                type="date"
+                value={reportDate}
+                onChange={(e) => setReportDate(e.target.value)}
+                style={{ ...inputStyle, colorScheme: 'dark' }}
+              />
             </div>
 
             {error && (

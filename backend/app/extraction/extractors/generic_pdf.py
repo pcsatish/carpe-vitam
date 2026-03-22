@@ -1,11 +1,10 @@
 """Generic PDF extractor - works with various lab report formats."""
 
 import re
-from datetime import date, datetime
 from typing import Optional
 import pdfplumber
 
-from ..base import BaseExtractor, ExtractorOutput, ExtractedTestResult
+from ..base import BaseExtractor, ExtractorOutput, ExtractedTestResult, extract_report_date
 from ..registry import ExtractorRegistry
 
 
@@ -35,7 +34,7 @@ class GenericPDFExtractor(BaseExtractor):
 
                 # Extract metadata
                 patient_name = self._extract_patient_name(full_text)
-                report_date = self._extract_date(full_text)
+                report_date = extract_report_date(full_text)
 
                 # Try table extraction first
                 tests = await self._extract_from_tables(pdf)
@@ -68,24 +67,6 @@ class GenericPDFExtractor(BaseExtractor):
         match = re.search(r"Name\s*:\s*(.*?)\(", text)
         if match:
             return match.group(1).strip()
-        return None
-
-    def _extract_date(self, text: str) -> Optional[date]:
-        """Extract report date from text."""
-        for pattern, fmts in [
-            (r"\d{2}/\d{2}/\d{4}", ["%d/%m/%Y"]),
-            (r"\d{2}-\d{2}-\d{4}", ["%d-%m-%Y"]),
-            (r"\d{2} \w{3},? \d{4}", ["%d %b %Y", "%d %B %Y"]),
-        ]:
-            match = re.search(pattern, text)
-            if not match:
-                continue
-            raw = match.group(0).replace(",", "")
-            for fmt in fmts:
-                try:
-                    return datetime.strptime(raw, fmt).date()
-                except ValueError:
-                    continue
         return None
 
     async def _extract_from_tables(self, pdf) -> list[ExtractedTestResult]:

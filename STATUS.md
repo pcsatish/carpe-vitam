@@ -1,6 +1,6 @@
 # Carpe Vitam - Implementation Status
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22 (issue #8 complete)
 **Phase**: Phase 3 - In Progress (Dashboard Quality)
 
 ---
@@ -196,12 +196,14 @@
 | Issue | Feature | Status |
 |-------|---------|--------|
 | #7 | UI consistency: dark theme across all pages | ✅ Done |
-| #8 | Fix report dates (hard dependency for trend features) | 🔄 In Progress |
+| #8 | Fix report dates (hard dependency for trend features) | ✅ Done |
 | #9 | Trend indicators per analyte | ⬜ Pending #8 |
 | #10 | Analyte detail view (history table + larger chart) | ⬜ Pending #8 |
 | #11 | % deviation from optimal range | ⬜ Pending |
 | #12 | Category summary row | ⬜ Pending |
 | #13 | Lab report linkage on chart tooltips | ⬜ Pending #8 |
+| #15 | Fix misleading FAILED status when no analytes match catalog | ⬜ Open (bug) |
+| #16 | Store unrecognized analytes for catalog review queue | ⬜ Open (feature) |
 
 ---
 
