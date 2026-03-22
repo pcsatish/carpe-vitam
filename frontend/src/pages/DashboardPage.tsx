@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import { familiesAPI, type Family, type FamilyMember } from '../api/families'
 import { resultsAPI, type TimeSeriesSeries } from '../api/results'
 import AnalyteCard from '../components/dashboard/AnalyteCard'
+import AnalyteDetailModal from '../components/dashboard/AnalyteDetailModal'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -16,6 +17,7 @@ export default function DashboardPage() {
 
   const [allSeries, setAllSeries] = useState<TimeSeriesSeries[]>([])
   const [loadingChart, setLoadingChart] = useState(false)
+  const [selectedSeries, setSelectedSeries] = useState<TimeSeriesSeries | null>(null)
 
   const grouped = allSeries.reduce<Record<string, TimeSeriesSeries[]>>((acc, s) => {
     const cat = s.category ?? 'Other'
@@ -150,11 +152,15 @@ export default function DashboardPage() {
               {category}
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
-              {series.map((s) => <AnalyteCard key={s.analyte_id} series={s} />)}
+              {series.map((s) => <AnalyteCard key={s.analyte_id} series={s} onClick={() => setSelectedSeries(s)} />)}
             </div>
           </div>
         ))}
       </main>
+
+      {selectedSeries && (
+        <AnalyteDetailModal series={selectedSeries} onClose={() => setSelectedSeries(null)} />
+      )}
     </div>
   )
 }
