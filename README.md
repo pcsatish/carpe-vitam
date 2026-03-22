@@ -85,6 +85,9 @@ cd backend && alembic revision --autogenerate -m "description"
 
 # Seed analyte catalog
 cd backend && source .venv/bin/activate && python -m scripts.seed_analytes
+
+# After any backend Python change (no --reload in docker-compose)
+docker restart carpe-vitam-api
 ```
 
 ## Roadmap
