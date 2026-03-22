@@ -1,6 +1,7 @@
 """Upload schemas."""
 
-from datetime import datetime
+from datetime import date, datetime
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -25,4 +26,11 @@ class UploadResponseSchema(BaseModel):
 
     lab_report_id: str
     extraction_status: str
+    report_date: Optional[date]
     message: str
+
+
+class SetReportDateSchema(BaseModel):
+    """Patch report date on a lab report."""
+
+    report_date: date

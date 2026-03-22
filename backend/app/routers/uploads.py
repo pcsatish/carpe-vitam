@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db_session
 from ..dependencies import get_current_user
 from ..models.lab_report import LabReport
-from ..schemas.uploads import LabReportSchema, UploadResponseSchema
+from ..schemas.uploads import LabReportSchema, UploadResponseSchema, SetReportDateSchema
 from ..services.upload_service import UploadService
 from ..services.result_service import ResultService
 
@@ -53,6 +53,7 @@ async def upload_pdf(
         return UploadResponseSchema(
             lab_report_id=lab_report.id,
             extraction_status=lab_report.extraction_status,
+            report_date=lab_report.report_date,
             message="File uploaded successfully",
         )
     except ValueError as e:
@@ -97,6 +98,32 @@ async def get_upload(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Lab report not found",
         )
+    return lab_report
+
+
+@router.patch("/{id}/date", response_model=LabReportSchema)
+async def set_report_date(
+    id: str,
+    payload: SetReportDateSchema,
+    db: AsyncSession = Depends(get_db_session),
+    current_user = Depends(get_current_user),
+):
+    """Set the report date on a lab report and backfill test result report_dates."""
+    lab_report = await db.get(LabReport, id)
+    if not lab_report or lab_report.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lab report not found")
+
+    lab_report.report_date = payload.report_date
+    # Backfill report_date on all test results for this report
+    from sqlalchemy import update
+    from ..models.test_result import TestResult
+    await db.execute(
+        update(TestResult)
+        .where(TestResult.lab_report_id == id)
+        .values(report_date=payload.report_date)
+    )
+    await db.commit()
+    await db.refresh(lab_report)
     return lab_report
 
 
