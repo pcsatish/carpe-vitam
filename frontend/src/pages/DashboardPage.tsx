@@ -106,7 +106,10 @@ export default function DashboardPage() {
           <div style={{ backgroundColor: '#111827', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #1f2937' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#ffffff' }}>View Results For</h2>
             {families.length === 0 ? (
-              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>No families yet. Upload a report to get started.</p>
+              <div style={{ fontSize: '0.875rem', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <p style={{ margin: 0 }}>You're not part of any family yet.</p>
+                <p style={{ margin: 0 }}>Create one below, or ask your family admin to add you by email.</p>
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
