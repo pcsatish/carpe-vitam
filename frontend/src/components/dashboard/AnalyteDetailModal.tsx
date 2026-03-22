@@ -10,6 +10,18 @@ interface Props {
   onClose: () => void
 }
 
+function getDeviation(value: number, refLow: number | null | undefined, refHigh: number | null | undefined): string | null {
+  if (refHigh != null && value > refHigh) {
+    const pct = Math.round(((value - refHigh) / refHigh) * 100)
+    return `+${pct}%`
+  }
+  if (refLow != null && refLow > 0 && value < refLow) {
+    const pct = Math.round(((refLow - value) / refLow) * 100)
+    return `-${pct}%`
+  }
+  return null
+}
+
 function getStatus(value: number | null | undefined, refLow: number | null | undefined, refHigh: number | null | undefined) {
   if (value == null) return null
   if (refLow != null && value < refLow) return 'Low'
@@ -95,7 +107,9 @@ export default function AnalyteDetailModal({ series, onClose }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {status && (
               <span style={{ backgroundColor: style.bg, color: style.color, fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontWeight: 500 }}>
-                {status}
+                {latest?.value != null && (status === 'High' || status === 'Low')
+                  ? `${getDeviation(latest.value, series.ref_low, series.ref_high)} ${status}`
+                  : status}
               </span>
             )}
             <button
@@ -200,7 +214,9 @@ export default function AnalyteDetailModal({ series, onClose }: Props) {
                     <td style={{ padding: '0.625rem 0.75rem', textAlign: 'center' }}>
                       {rowStatus ? (
                         <span style={{ backgroundColor: rowStyle.bg, color: rowStyle.color, fontSize: '0.7rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontWeight: 500 }}>
-                          {rowStatus}
+                          {dp.value != null && (rowStatus === 'High' || rowStatus === 'Low')
+                            ? `${getDeviation(dp.value, series.ref_low, series.ref_high)} ${rowStatus}`
+                            : rowStatus}
                         </span>
                       ) : '—'}
                     </td>

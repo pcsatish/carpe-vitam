@@ -6,6 +6,18 @@ interface AnalyteCardProps {
   onClick: () => void
 }
 
+function getDeviation(value: number, refLow: number | null | undefined, refHigh: number | null | undefined): string | null {
+  if (refHigh != null && value > refHigh) {
+    const pct = Math.round(((value - refHigh) / refHigh) * 100)
+    return `+${pct}%`
+  }
+  if (refLow != null && refLow > 0 && value < refLow) {
+    const pct = Math.round(((refLow - value) / refLow) * 100)
+    return `-${pct}%`
+  }
+  return null
+}
+
 function getStatus(value: number | null | undefined, refLow: number | null | undefined, refHigh: number | null | undefined) {
   if (value == null) return null
   if (refLow != null && value < refLow) return 'Low'
@@ -25,6 +37,9 @@ export default function AnalyteCard({ series, onClick }: AnalyteCardProps) {
   const latest = series.datapoints[series.datapoints.length - 1]
   const status = getStatus(latest?.value, series.ref_low, series.ref_high)
   const style = status ? STATUS[status] : DEFAULT_STATUS
+  const deviationLabel = (status === 'High' || status === 'Low') && latest?.value != null
+    ? getDeviation(latest.value, series.ref_low, series.ref_high)
+    : null
 
   const chartData = series.datapoints.map((dp) => ({ date: dp.date, value: dp.value }))
 
@@ -42,7 +57,7 @@ export default function AnalyteCard({ series, onClick }: AnalyteCardProps) {
         <span style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.875rem' }}>{series.analyte_name}</span>
         {status && (
           <span style={{ backgroundColor: style.bg, color: style.color, fontSize: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontWeight: 500 }}>
-            {status}
+            {deviationLabel ? `${deviationLabel} ${status}` : status}
           </span>
         )}
       </div>
