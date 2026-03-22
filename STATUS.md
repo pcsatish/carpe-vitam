@@ -1,249 +1,78 @@
-# Carpe Vitam - Implementation Status
+# Carpe Vitam - Status
 
-**Last Updated**: 2026-03-22 (issues #8, #10, #20 complete)
-**Phase**: Phase 3 - In Progress (Dashboard Quality)
-
----
-
-## Phase 2 - Complete (2026-03-20)
-
-### ✅ All 4 Phase 2 Items Delivered
-
-1. **Families API** — `/api/v1/families` and `/api/v1/families/{id}/members`
-   - 4 endpoints (POST/GET families, POST/GET members)
-   - Authorization: membership required, ADMIN role for adding
-   - Creator auto-added as ADMIN
-   - 9 integration tests (CRUD, auth, edge cases)
-   - Files: `routers/families.py`, `schemas/families.py`, `tests/test_families.py`
-
-2. **Upload UI Enhancement** — Family/member selection
-   - Family dropdown (auto-fetched on load)
-   - Member dropdown (auto-fetched when family changes)
-   - Inline "create family" form for first-time users
-   - File: `frontend/src/pages/UploadPage.tsx`
-
-3. **Extended Analyte Catalog** — 44 analytes across 12 categories
-   - Categories: Lipid, Liver, Renal, Thyroid, Glucose, Electrolyte, Hematology, Minerals, Pancreas, Hormones, Cardiac, Metabolic
-   - All aliases mapped from `unique_analytes.json` with method-suffix normalization
-   - Standard adult reference ranges seeded (sex-stratified)
-   - File: `backend/scripts/seed_analytes.py`
-
-4. **Lab-Specific Extractors**
-   - Thyrocare: Detects "THYROCARE"/"AAROGYAM", priority 100
-   - Redcliffe: Detects "REDCLIFFE", priority 200
-   - Files: `extractors/thyrocare_pdf.py`, `extractors/redcliffe_pdf.py`
-
-5. **Dashboard Charts** — Live time-series visualization
-   - Family + member selectors (auto-populate)
-   - Recharts time-series with reference ranges
-   - File: `frontend/src/pages/DashboardPage.tsx`
-
-### Infrastructure Added
-- `scripts/setup.sh` — One-command development setup (venv + deps + seed)
-- `SETUP.md` — Detailed setup instructions and troubleshooting
-- `frontend/src/api/families.ts` — Typed families API client
-
-### Testing & Validation
-- ✅ All code imports successfully
-- ✅ All TypeScript/TSX structure verified
-- ✅ Setup script functional
-- ✅ Integration tests ready (await DB)
+**Last Updated**: 2026-03-22
+**Phase**: Phase 3 — Dashboard Quality (in progress)
+**Tag**: v0.2.1
 
 ---
 
-## Completed Implementation (Phase 1 - All 17 Tasks)
-
-### Backend (Python/FastAPI)
-- Project structure with pyproject.toml
-- SQLAlchemy ORM models (8 tables: users, families, family_members, analyte_catalog, analyte_aliases, reference_ranges, lab_reports, test_results)
-- Alembic migrations (001_initial_schema.py)
-- JWT authentication (register, login, refresh, me endpoints)
-- PDF extraction pipeline:
-  - BaseExtractor ABC + Registry pattern
-  - GenericPDFExtractor (table-first, regex fallback)
-  - Canonicalizer (test name normalization with method-suffix stripping)
-  - UnitConverter (mg/dL <-> mmol/L conversions)
-- Upload service + endpoint (triggers extraction synchronously)
-- Extraction service (orchestrates pipeline + canonicalization + persistence)
-- Results API (GET /results, GET /results/timeseries)
-
-### Frontend (React/TypeScript/Vite)
-- Project structure with package.json, vite.config.ts, tsconfig.json
-- Zustand auth store (persisted to localStorage)
-- API client with axios + automatic token injection
-- Auth pages (LoginPage, RegisterPage)
-- Protected routes (ProtectedRoute wrapper)
-- Dashboard page (upload + chart sections)
-- Upload page (file picker + progress)
-- TimeSeriesChart component (Recharts-based)
-
-### Infrastructure
-- Dockerfile for backend (bcrypt<4.0.0 pinned for passlib compat)
-- Dockerfile for frontend (dev mode)
-- docker-compose.yml (PostgreSQL + FastAPI + React)
-- .env.example with configuration
-- .gitignore
-- README.md with setup instructions
-- CLAUDE.md with workflow guidelines
-
----
-
-## All Bugs Found & Fixed (2026-03-20)
-
-### Issue 1: Async Lifespan Initialization
-**Status**: Fixed
-**File**: `backend/app/main.py`
-
-### Issue 2: Missing ForeignKey Import
-**Status**: Fixed
-**File**: `backend/app/models/analyte.py`
-
-### Issue 3: Invalid Family->LabReport Relationship
-**Status**: Fixed
-**File**: `backend/app/models/family.py`
-
-### Issue 4: Auth Header Parsing
-**Status**: Fixed
-**File**: `backend/app/dependencies.py`
-
-### Issue 5: Missing Pydantic Email Validator
-**Status**: Fixed
-**File**: `backend/Dockerfile`
-
-### Issue 6: Frontend Port Conflict
-**Status**: Fixed
-**Solution**: Use `--force-recreate` when restarting frontend container
-
-### Issue 7: bcrypt/passlib Version Incompatibility
-**Status**: Fixed
-**Was**: `passlib==1.7.4` incompatible with `bcrypt>=4.0.0` — registration crashed with "password cannot be longer than 72 bytes"
-**Fixed**: Pinned `bcrypt<4.0.0` in `backend/Dockerfile` and `backend/pyproject.toml`
-
-### Issue 8: UserSchema.created_at Type Mismatch
-**Status**: Fixed
-**Was**: `created_at: str` in schema but model returns `datetime` — `GET /auth/me` returned 500
-**Fixed**: Changed to `created_at: datetime` in `backend/app/schemas/auth.py`
-
-### Issue 9: Extraction Never Triggered After Upload
-**Status**: Fixed
-**Was**: Upload router only saved file to disk and created PENDING record — never called ResultService
-**Fixed**: Added `ResultService.extract_and_persist()` call in `backend/app/routers/uploads.py` after file save
-
-### Issue 10: Canonicalizer Regex Too Aggressive
-**Status**: Fixed
-**Was**: `re.sub(r"(\w)\s+(\w)", r"\1\2", name)` collapsed ALL spaces between word chars — `SERUM COPPER` -> `SERUMCOPPER`
-**Fixed**: Replaced with token-based logic that only collapses consecutive single-character tokens (e.g. `C M I A` -> `CMIA`)
-**File**: `backend/app/extraction/canonicalizer.py`
-
-### Issue 11: CLIA Not in METHOD_SUFFIXES
-**Status**: Fixed
-**Was**: `TESTOSTERONE C.L.I.A` normalized to `TESTOSTERONE CLIA` instead of `TESTOSTERONE`
-**Fixed**: Added `CLIA` to `METHOD_SUFFIXES` list in canonicalizer
-**File**: `backend/app/extraction/canonicalizer.py`
-
-### Issue 12: analyte_catalog and analyte_aliases Empty
-**Status**: Fixed
-**Was**: No analyte data seeded — all extracted tests skipped, every report marked FAILED
-**Fixed**: Seeded 22 analytes from `normalization_map.json` with canonical names, categories, units, and aliases
-
-### Issue 13: Timeseries Endpoint Lazy-Load in Async Context
-**Status**: Fixed
-**Was**: `test_result.analyte` accessed as lazy relationship in async handler — `MissingGreenlet` 500 error
-**Fixed**: Added `selectinload(TestResult.analyte)` to the timeseries query
-**File**: `backend/app/routers/results.py`
-
----
-
-## Verification Checklist
-
-- [x] Backend starts without crashes
-- [x] GET /health returns `{"status": "ok"}`
-- [x] Docker images rebuild correctly
-- [x] POST /auth/register creates user and returns JWT
-- [x] POST /auth/login returns JWT token
-- [x] GET /auth/me returns user info
-- [x] POST /uploads accepts PDF, triggers extraction, returns lab_report_id
-- [x] GET /results returns extracted test results
-- [x] GET /results/timeseries returns time-series data
-- [x] Frontend loads at localhost:3000
-
----
-
-## Known Gaps
-
-- **Low canonicalization coverage**: 44 analytes seeded. Unrecognized tests are silently skipped — tracked in issue #16 (unrecognized analyte queue).
-- **Misleading FAILED status**: Reports where extraction succeeds but no analytes match the catalog are marked FAILED instead of a distinct status — tracked in issue #15.
-
----
-
-## Lessons from Phase 2
-
-**What Worked Well**:
-- Virtual environment + setup automation (`scripts/setup.sh`) — eliminated dev friction
-- Seed scripts with idempotent inserts (UPSERT) — safe to re-run multiple times
-- Helper functions for authorization (`_require_admin`, `_require_membership`) — DRY + prevents info leak bugs
-- Frontend re-fetching server data on state change — simple, fresh data, no sync bugs
-- Extractor registry pattern — easy to add new labs without modifying core pipeline
-
-**For Phase 3**:
-- Seed scripts should eventually become Alembic data migrations (track state in DB)
-- Consider TanStack Query for caching if chart re-renders become expensive
-- `gh pr edit` broken due to GitHub classic projects deprecation — update PR titles/bodies manually on GitHub
-
-## Phase 3 — In Progress (Dashboard Quality)
+## Phase 3 — In Progress
 
 | Issue | Feature | Status |
 |-------|---------|--------|
 | #7 | UI consistency: dark theme across all pages | ✅ Done |
-| #8 | Fix report dates (hard dependency for trend features) | ✅ Done |
-| #9 | Trend indicators per analyte | ⬜ Pending |
+| #8 | Fix report dates | ✅ Done |
 | #10 | Analyte detail view (history table + larger chart) | ✅ Done |
-| #20 | Fix duplicate analytes per report (summary + detail tables in PDF) | ✅ Done |
+| #20 | Fix duplicate analytes per report | ✅ Done |
+| #9 | Trend indicators per analyte | ⬜ Pending |
 | #11 | % deviation from optimal range | ⬜ Pending |
 | #12 | Category summary row | ⬜ Pending |
 | #13 | Lab report linkage on chart tooltips | ⬜ Pending |
-| #15 | Fix misleading FAILED status when no analytes match catalog | ⬜ Open (bug) |
-| #16 | Store unrecognized analytes for catalog review queue | ⬜ Open (feature) |
+| #15 | Fix misleading FAILED status (bug) | ⬜ Pending |
+| #16 | Store unrecognized analytes for catalog review queue | ⬜ Pending |
+
+## Completed Phases
+
+- **Phase 1** (v0.1.0) — Backend + frontend scaffolding, auth, PDF extraction pipeline, results API
+- **Phase 2** (v0.2.0) — Families API, lab-specific extractors (Thyrocare/Redcliffe), 44-analyte catalog, dashboard charts, upload UI
 
 ---
 
-## Key Files Reference
+## Key Files
 
-### Backend Entry Points
-- `backend/app/main.py` - FastAPI app setup
-- `backend/app/config.py` - Environment config
-- `backend/app/database.py` - SQLAlchemy setup
-- `backend/alembic/versions/001_initial_schema.py` - Full schema
+| Area | File |
+|------|------|
+| FastAPI app | `backend/app/main.py` |
+| DB session | `backend/app/database.py` |
+| Auth | `backend/app/routers/auth.py`, `backend/app/dependencies.py` |
+| Upload + extraction trigger | `backend/app/routers/uploads.py` |
+| Extraction pipeline | `backend/app/services/result_service.py` |
+| Canonicalizer | `backend/app/extraction/canonicalizer.py` |
+| Extractors | `backend/app/extraction/extractors/` |
+| Results API | `backend/app/routers/results.py` |
+| Families API | `backend/app/routers/families.py` |
+| Frontend router | `frontend/src/App.tsx` |
+| Auth store | `frontend/src/store/authStore.ts` |
+| Dashboard | `frontend/src/pages/DashboardPage.tsx` |
+| Analyte card | `frontend/src/components/dashboard/AnalyteCard.tsx` |
+| Analyte detail modal | `frontend/src/components/dashboard/AnalyteDetailModal.tsx` |
+| Upload page | `frontend/src/pages/UploadPage.tsx` |
 
-### Frontend Entry Points
-- `frontend/src/main.tsx` - React entry
-- `frontend/src/App.tsx` - Router setup
-- `frontend/src/store/authStore.ts` - State management
-- `frontend/src/api/client.ts` - HTTP client
-
-### Critical Logic
-- `backend/app/extraction/canonicalizer.py` - Name normalization
-- `backend/app/extraction/extractors/generic_pdf.py` - PDF extraction
-- `backend/app/services/result_service.py` - Extraction orchestration
-- `backend/app/routers/uploads.py` - Upload + extraction trigger
-- `backend/app/dependencies.py` - Auth token handling
+---
 
 ## Running
 
 ```bash
 # Full stack
-cd /home/chris/carpe-vitam
 docker-compose up
-
-# If frontend port doesn't bind
-docker-compose up -d --force-recreate frontend
 
 # After backend Python changes (no --reload in docker-compose)
 docker restart carpe-vitam-api
 
-# Database direct access
-# Container: carpe-vitam-db, User: postgres, DB: carpe_vitam
+# Database
 docker exec carpe-vitam-db psql -U postgres -d carpe_vitam
+
+# Re-seed analyte catalog (idempotent)
+docker exec carpe-vitam-api python scripts/seed_analytes.py
 ```
 
-**API Docs**: http://localhost:8000/docs
+**API docs**: http://localhost:8000/docs
+**Frontend**: http://localhost:3000
+
+---
+
+## Known Constraints
+
+- WSL2/Docker: Tailwind JIT does not scan new `.tsx` files — use inline styles for all new components
+- `gh pr edit` broken due to GitHub classic projects deprecation — update PR titles/bodies on GitHub manually
+- Seed scripts are not yet Alembic data migrations (safe to re-run, but not tracked in DB)
