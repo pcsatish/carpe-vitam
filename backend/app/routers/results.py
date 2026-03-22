@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
@@ -7,7 +7,8 @@ from datetime import datetime
 from ..database import get_db_session
 from ..dependencies import get_current_user
 from ..models.test_result import TestResult
-from ..models.analyte import AnalyteCatalog
+from ..models.analyte import AnalyteCatalog, ReferenceRange
+from ..models.family import FamilyMember
 from ..schemas.results import TestResultSchema, TimeSeriesResponseSchema, TimeSeriesSeries, TimeSeriesDatapoint
 
 router = APIRouter()
@@ -105,23 +106,46 @@ async def get_timeseries(
 
         series_map[test_result.analyte_id]["datapoints"].append(test_result)
 
+    # Get family member's sex for sex-specific range lookup
+    member_result = await db.execute(select(FamilyMember).where(FamilyMember.id == family_member_id))
+    member = member_result.scalar_one_or_none()
+    member_sex = member.sex if member else None
+
+    # Fetch reference ranges — sex-specific (if member sex known) and sex-neutral
+    sex_filter = (
+        or_(ReferenceRange.sex == member_sex, ReferenceRange.sex.is_(None))
+        if member_sex
+        else ReferenceRange.sex.is_(None)
+    )
+    rr_result = await db.execute(
+        select(ReferenceRange).where(
+            ReferenceRange.analyte_id.in_(list(series_map.keys())),
+            sex_filter,
+        )
+    )
+    # Prefer sex-specific over sex-neutral when both exist
+    ref_ranges: dict[str, ReferenceRange] = {}
+    for rr in rr_result.scalars().all():
+        if rr.analyte_id not in ref_ranges or rr.sex is not None:
+            ref_ranges[rr.analyte_id] = rr
+
     # Build response
     series = []
     for analyte_id, data in series_map.items():
         analyte = data["analyte"]
+        rr = ref_ranges.get(analyte_id)
+        ref_low = rr.low_normal if rr else None
+        ref_high = rr.high_normal if rr else None
+
         datapoints = [
             TimeSeriesDatapoint(
                 date=str(tr.report_date) if tr.report_date else "",
                 value=tr.canonical_value,
-                ref_low=tr.ref_low,
-                ref_high=tr.ref_high,
+                ref_low=ref_low,
+                ref_high=ref_high,
             )
             for tr in data["datapoints"]
         ]
-
-        # Use ref range from most recent datapoint (same for all)
-        ref_low = data["datapoints"][-1].ref_low if data["datapoints"] else None
-        ref_high = data["datapoints"][-1].ref_high if data["datapoints"] else None
 
         series.append(TimeSeriesSeries(
             analyte_id=analyte.id,
