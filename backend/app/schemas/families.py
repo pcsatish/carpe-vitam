@@ -28,6 +28,7 @@ class FamilyMemberCreateSchema(BaseModel):
     sex: Optional[str] = Field(None, max_length=20)
     role: FamilyMemberRole = FamilyMemberRole.MEMBER
     user_id: Optional[str] = None
+    email: Optional[str] = None  # resolve to user_id server-side
 
 
 class FamilyMemberSchema(BaseModel):

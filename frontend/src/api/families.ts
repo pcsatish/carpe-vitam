@@ -36,7 +36,7 @@ export const familiesAPI = {
 
   addMember: async (
     familyId: string,
-    payload: { display_name: string; date_of_birth?: string; sex?: string; role?: string }
+    payload: { display_name: string; email?: string; date_of_birth?: string; sex?: string; role?: string }
   ): Promise<FamilyMember> => {
     const response = await apiClient.post(`/families/${familyId}/members`, payload)
     return response.data
