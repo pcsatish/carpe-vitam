@@ -169,11 +169,10 @@
 
 ---
 
-## Known Gaps (Not Blocking MVP)
+## Known Gaps
 
-- **No families API**: `family_member_id` for uploads must be inserted directly into DB. Phase 2 adds `/api/v1/families` endpoints.
-- **report_date is null**: GenericPDFExtractor doesn't parse dates from this PDF format — timeseries `date` field is empty. Needs extractor improvement or lab-specific extractor.
-- **Low canonicalization coverage**: Only analytes in `normalization_map.json` (22 entries) are recognized. Most specialized tests (Apolipoprotein, LP-PLA2, etc.) are silently skipped. Expand aliases table to improve coverage.
+- **Low canonicalization coverage**: 44 analytes seeded. Unrecognized tests are silently skipped — tracked in issue #16 (unrecognized analyte queue).
+- **Misleading FAILED status**: Reports where extraction succeeds but no analytes match the catalog are marked FAILED instead of a distinct status — tracked in issue #15.
 
 ---
 
@@ -187,9 +186,9 @@
 - Extractor registry pattern — easy to add new labs without modifying core pipeline
 
 **For Phase 3**:
-- Report dates must be fixed first — x-axis is meaningless without real dates
 - Seed scripts should eventually become Alembic data migrations (track state in DB)
 - Consider TanStack Query for caching if chart re-renders become expensive
+- `gh pr edit` broken due to GitHub classic projects deprecation — update PR titles/bodies manually on GitHub
 
 ## Phase 3 — In Progress (Dashboard Quality)
 
@@ -197,12 +196,12 @@
 |-------|---------|--------|
 | #7 | UI consistency: dark theme across all pages | ✅ Done |
 | #8 | Fix report dates (hard dependency for trend features) | ✅ Done |
-| #9 | Trend indicators per analyte | ⬜ Pending #8 |
+| #9 | Trend indicators per analyte | ⬜ Pending |
 | #10 | Analyte detail view (history table + larger chart) | ✅ Done |
 | #20 | Fix duplicate analytes per report (summary + detail tables in PDF) | ✅ Done |
 | #11 | % deviation from optimal range | ⬜ Pending |
 | #12 | Category summary row | ⬜ Pending |
-| #13 | Lab report linkage on chart tooltips | ⬜ Pending #8 |
+| #13 | Lab report linkage on chart tooltips | ⬜ Pending |
 | #15 | Fix misleading FAILED status when no analytes match catalog | ⬜ Open (bug) |
 | #16 | Store unrecognized analytes for catalog review queue | ⬜ Open (feature) |
 
@@ -239,8 +238,12 @@ docker-compose up
 # If frontend port doesn't bind
 docker-compose up -d --force-recreate frontend
 
-# Database (direct access for seeding families until Phase 2 API exists)
-# Host: localhost:5432, User: postgres, Password: postgres, DB: carpe_vitam
+# After backend Python changes (no --reload in docker-compose)
+docker restart carpe-vitam-api
+
+# Database direct access
+# Container: carpe-vitam-db, User: postgres, DB: carpe_vitam
+docker exec carpe-vitam-db psql -U postgres -d carpe_vitam
 ```
 
 **API Docs**: http://localhost:8000/docs
