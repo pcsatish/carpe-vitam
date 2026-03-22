@@ -6,6 +6,31 @@ interface AnalyteCardProps {
   onClick: () => void
 }
 
+function getTrend(series: TimeSeriesSeries): { arrow: string; color: string } | null {
+  const pts = series.datapoints.filter((dp) => dp.value != null)
+  if (pts.length < 2) return null
+
+  const prev = pts[pts.length - 2].value!
+  const latest = pts[pts.length - 1].value!
+  const delta = latest - prev
+  const threshold = Math.abs(prev) * 0.01 || 0.1
+
+  if (Math.abs(delta) <= threshold) return { arrow: '→', color: '#9ca3af' }
+
+  if (series.ref_low != null || series.ref_high != null) {
+    const refMid =
+      series.ref_low != null && series.ref_high != null
+        ? (series.ref_low + series.ref_high) / 2
+        : (series.ref_low ?? series.ref_high!)
+    const improving = Math.abs(latest - refMid) < Math.abs(prev - refMid)
+    return improving
+      ? { arrow: '↑', color: '#86efac' }
+      : { arrow: '↓', color: '#fca5a5' }
+  }
+
+  return delta > 0 ? { arrow: '↑', color: '#9ca3af' } : { arrow: '↓', color: '#9ca3af' }
+}
+
 function getStatus(value: number | null | undefined, refLow: number | null | undefined, refHigh: number | null | undefined) {
   if (value == null) return null
   if (refLow != null && value < refLow) return 'Low'
@@ -25,6 +50,7 @@ export default function AnalyteCard({ series, onClick }: AnalyteCardProps) {
   const latest = series.datapoints[series.datapoints.length - 1]
   const status = getStatus(latest?.value, series.ref_low, series.ref_high)
   const style = status ? STATUS[status] : DEFAULT_STATUS
+  const trend = getTrend(series)
 
   const chartData = series.datapoints.map((dp) => ({ date: dp.date, value: dp.value }))
 
@@ -48,9 +74,14 @@ export default function AnalyteCard({ series, onClick }: AnalyteCardProps) {
       </div>
 
       {latest?.value != null && (
-        <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
           <span style={{ fontSize: '1.5rem', fontWeight: 700, color: style.line }}>{latest.value}</span>
-          <span style={{ color: '#9ca3af', fontSize: '0.875rem', marginLeft: '0.25rem' }}>{series.unit}</span>
+          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>{series.unit}</span>
+          {trend && (
+            <span style={{ fontSize: '1rem', fontWeight: 700, color: trend.color, marginLeft: '0.25rem' }}>
+              {trend.arrow}
+            </span>
+          )}
         </div>
       )}
 
