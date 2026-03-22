@@ -5,6 +5,7 @@ import { familiesAPI, type Family, type FamilyMember } from '../api/families'
 import { resultsAPI, type TimeSeriesSeries } from '../api/results'
 import AnalyteCard from '../components/dashboard/AnalyteCard'
 import AnalyteDetailModal from '../components/dashboard/AnalyteDetailModal'
+import ManageMembersPanel from '../components/dashboard/ManageMembersPanel'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -18,6 +19,10 @@ export default function DashboardPage() {
   const [allSeries, setAllSeries] = useState<TimeSeriesSeries[]>([])
   const [loadingChart, setLoadingChart] = useState(false)
   const [selectedSeries, setSelectedSeries] = useState<TimeSeriesSeries | null>(null)
+
+  const currentUserIsAdmin = members.some(
+    (m) => m.user_id === user?.id && m.role === 'admin'
+  )
 
   const grouped = allSeries.reduce<Record<string, TimeSeriesSeries[]>>((acc, s) => {
     const cat = s.category ?? 'Other'
@@ -134,6 +139,15 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Manage members (admin only) */}
+        {currentUserIsAdmin && selectedFamilyId && (
+          <ManageMembersPanel
+            familyId={selectedFamilyId}
+            members={members}
+            onMemberAdded={(newMember) => setMembers((prev) => [...prev, newMember])}
+          />
+        )}
 
         {/* Results */}
         {loadingChart && (
