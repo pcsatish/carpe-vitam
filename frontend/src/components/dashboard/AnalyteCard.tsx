@@ -3,6 +3,7 @@ import { TimeSeriesSeries } from '../../api/results'
 
 interface AnalyteCardProps {
   series: TimeSeriesSeries
+  onClick: () => void
 }
 
 function getStatus(value: number | null | undefined, refLow: number | null | undefined, refHigh: number | null | undefined) {
@@ -20,7 +21,7 @@ const STATUS = {
 }
 const DEFAULT_STATUS = { bg: '#374151', color: '#d1d5db', line: '#6b7280' }
 
-export default function AnalyteCard({ series }: AnalyteCardProps) {
+export default function AnalyteCard({ series, onClick }: AnalyteCardProps) {
   const latest = series.datapoints[series.datapoints.length - 1]
   const status = getStatus(latest?.value, series.ref_low, series.ref_high)
   const style = status ? STATUS[status] : DEFAULT_STATUS
@@ -33,7 +34,10 @@ export default function AnalyteCard({ series }: AnalyteCardProps) {
   const max = allPoints.length ? Math.max(...allPoints) * 1.15 : 100
 
   return (
-    <div style={{ backgroundColor: '#1f2937', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <div
+      onClick={onClick}
+      style={{ backgroundColor: '#1f2937', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', cursor: 'pointer' }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <span style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.875rem' }}>{series.analyte_name}</span>
         {status && (

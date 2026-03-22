@@ -11,6 +11,9 @@ export interface TimeSeriesSeries {
   analyte_id: string
   analyte_name: string
   unit: string
+  category: string | null
+  ref_low: number | null
+  ref_high: number | null
   datapoints: TimeSeriesDatapoint[]
 }
 
