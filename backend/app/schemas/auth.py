@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -11,6 +12,7 @@ class UserRegisterSchema(BaseModel):
     email: EmailStr
     display_name: str = Field(..., min_length=1, max_length=255)
     password: str = Field(..., min_length=8, max_length=255)
+    sex: Optional[str] = Field(None, pattern="^(M|F)$")
 
 
 class UserLoginSchema(BaseModel):
@@ -33,6 +35,7 @@ class UserSchema(BaseModel):
     id: str
     email: str
     display_name: str
+    sex: Optional[str]
     is_active: bool
     is_admin: bool
     created_at: datetime

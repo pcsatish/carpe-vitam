@@ -33,6 +33,7 @@ async def create_family(
         family_id=family.id,
         user_id=current_user.id,
         display_name=current_user.display_name,
+        sex=current_user.sex,
         role=FamilyMemberRole.ADMIN,
     )
     db.add(admin_member)

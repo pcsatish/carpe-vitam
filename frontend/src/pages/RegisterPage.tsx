@@ -8,6 +8,7 @@ export default function RegisterPage() {
   const setAuth = useAuthStore((state) => state.setAuth)
   const [email, setEmail] = useState('')
   const [displayName, setDisplayName] = useState('')
+  const [sex, setSex] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -34,14 +35,17 @@ export default function RegisterPage() {
         email,
         display_name: displayName,
         password,
+        sex: sex || undefined,
       })
+      setAuth(null, response.access_token)
+      const userInfo = await authAPI.getCurrentUser()
       setAuth(
         {
-          id: '',
-          email,
-          display_name: displayName,
-          is_active: true,
-          is_admin: false,
+          id: userInfo.id,
+          email: userInfo.email,
+          display_name: userInfo.display_name,
+          is_active: userInfo.is_active,
+          is_admin: userInfo.is_admin,
         },
         response.access_token
       )
@@ -84,6 +88,20 @@ export default function RegisterPage() {
               required
               style={inputStyle}
             />
+          </div>
+
+          <div>
+            <label htmlFor="sex" style={labelStyle}>Sex <span style={{ color: '#6b7280', fontWeight: 400 }}>(optional — used for reference ranges)</span></label>
+            <select
+              id="sex"
+              value={sex}
+              onChange={(e) => setSex(e.target.value)}
+              style={{ ...inputStyle, backgroundColor: '#1f2937' }}
+            >
+              <option value="">Prefer not to say</option>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+            </select>
           </div>
 
           <div>

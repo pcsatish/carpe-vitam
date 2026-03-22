@@ -48,6 +48,7 @@ async def register_user(db: AsyncSession, user_data: UserRegisterSchema) -> User
         email=user_data.email,
         display_name=user_data.display_name,
         hashed_password=hash_password(user_data.password),
+        sex=user_data.sex,
         is_active=True,
     )
     db.add(user)
