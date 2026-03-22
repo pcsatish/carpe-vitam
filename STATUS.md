@@ -1,6 +1,6 @@
 # Carpe Vitam - Implementation Status
 
-**Last Updated**: 2026-03-22 (issue #8 complete)
+**Last Updated**: 2026-03-22 (issues #8, #10, #20 complete)
 **Phase**: Phase 3 - In Progress (Dashboard Quality)
 
 ---
@@ -198,7 +198,8 @@
 | #7 | UI consistency: dark theme across all pages | ✅ Done |
 | #8 | Fix report dates (hard dependency for trend features) | ✅ Done |
 | #9 | Trend indicators per analyte | ⬜ Pending #8 |
-| #10 | Analyte detail view (history table + larger chart) | ⬜ Pending #8 |
+| #10 | Analyte detail view (history table + larger chart) | ✅ Done |
+| #20 | Fix duplicate analytes per report (summary + detail tables in PDF) | ✅ Done |
 | #11 | % deviation from optimal range | ⬜ Pending |
 | #12 | Category summary row | ⬜ Pending |
 | #13 | Lab report linkage on chart tooltips | ⬜ Pending #8 |
