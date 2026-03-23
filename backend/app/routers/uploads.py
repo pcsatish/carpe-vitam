@@ -9,7 +9,7 @@ from ..database import get_db_session
 from ..dependencies import get_current_user
 from ..models.lab_report import LabReport
 from ..schemas.uploads import LabReportSchema, UploadResponseSchema, SetReportDateSchema
-from ..services.upload_service import UploadService
+from ..services.upload_service import UploadService, DuplicateUploadError
 from ..services.result_service import ResultService
 
 router = APIRouter()
@@ -21,10 +21,10 @@ async def upload_pdf(
     family_member_id: str = Form(...),
     report_date: Optional[date] = Form(None),
     db: AsyncSession = Depends(get_db_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Upload a lab report PDF."""
-    if not file.filename.lower().endswith('.pdf'):
+    if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only PDF files are supported",
@@ -56,6 +56,11 @@ async def upload_pdf(
             report_date=lab_report.report_date,
             message="File uploaded successfully",
         )
+    except DuplicateUploadError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -72,10 +77,10 @@ async def upload_pdf(
 async def list_uploads(
     family_member_id: str | None = Query(None),
     db: AsyncSession = Depends(get_db_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """List uploaded lab reports."""
-    query = select(LabReport).where(LabReport.is_deleted == False)
+    query = select(LabReport).where(LabReport.is_deleted.is_(False))
 
     if family_member_id:
         query = query.where(LabReport.family_member_id == family_member_id)
@@ -89,7 +94,7 @@ async def list_uploads(
 async def get_upload(
     id: str,
     db: AsyncSession = Depends(get_db_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Get a specific upload details."""
     lab_report = await db.get(LabReport, id)
@@ -106,7 +111,7 @@ async def set_report_date(
     id: str,
     payload: SetReportDateSchema,
     db: AsyncSession = Depends(get_db_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Set the report date on a lab report and backfill test result report_dates."""
     lab_report = await db.get(LabReport, id)
@@ -117,6 +122,7 @@ async def set_report_date(
     # Backfill report_date on all test results for this report
     from sqlalchemy import update
     from ..models.test_result import TestResult
+
     await db.execute(
         update(TestResult)
         .where(TestResult.lab_report_id == id)
@@ -131,7 +137,7 @@ async def set_report_date(
 async def delete_upload(
     id: str,
     db: AsyncSession = Depends(get_db_session),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     """Delete a lab report."""
     upload_service = UploadService()

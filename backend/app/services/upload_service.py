@@ -1,15 +1,21 @@
 """Service for handling PDF uploads."""
 
-import uuid
+import hashlib
 import os
+import uuid
 from datetime import date, datetime
 from pathlib import Path
 from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from ..models.lab_report import LabReport, ExtractionStatus
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ..models.family import FamilyMember
+from ..models.lab_report import ExtractionStatus, LabReport
+
+
+class DuplicateUploadError(ValueError):
+    """Raised when a duplicate PDF is uploaded for the same family member."""
 
 
 class UploadService:
@@ -48,6 +54,18 @@ class UploadService:
         if not family_member:
             raise ValueError(f"Family member {family_member_id} not found")
 
+        # Compute SHA-256 hash and reject duplicate uploads
+        file_hash = hashlib.sha256(file_content).hexdigest()
+        existing = await db.execute(
+            select(LabReport).where(
+                LabReport.file_hash == file_hash,
+                LabReport.family_member_id == family_member_id,
+                LabReport.is_deleted.is_(False),
+            )
+        )
+        if existing.scalars().first():
+            raise DuplicateUploadError("This file has already been uploaded for this family member")
+
         # Generate storage path
         report_id = str(uuid.uuid4())
         storage_path = str(self.UPLOAD_DIR / f"{report_id}_{filename}")
@@ -58,6 +76,7 @@ class UploadService:
 
         # Create lab report record
         lab_report = LabReport(
+            file_hash=file_hash,
             id=report_id,
             family_member_id=family_member_id,
             uploaded_by_user_id=uploaded_by_user_id,
