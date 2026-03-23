@@ -114,8 +114,8 @@ class ResultService:
             if test_results:
                 lab_report.extraction_status = ExtractionStatus.SUCCESS
             else:
-                lab_report.extraction_status = ExtractionStatus.FAILED
-                lab_report.extraction_notes = "No test results could be extracted"
+                lab_report.extraction_status = ExtractionStatus.PARTIAL
+                lab_report.extraction_notes = "Extraction succeeded but no analytes matched the catalog"
 
             lab_report.updated_at = datetime.utcnow()
             await db.commit()
