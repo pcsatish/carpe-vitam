@@ -163,16 +163,40 @@ export default function DashboardPage() {
             No results found for this member.
           </div>
         )}
-        {!loadingChart && Object.entries(grouped).map(([category, series]) => (
-          <div key={category}>
-            <h3 style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', marginBottom: '0.75rem' }}>
-              {category}
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
-              {series.map((s) => <AnalyteCard key={s.analyte_id} series={s} onClick={() => setSelectedSeries(s)} />)}
+        {!loadingChart && Object.entries(grouped).map(([category, series]) => {
+          const withRange = series.filter((s) => s.ref_low != null || s.ref_high != null)
+          const outOfRange = withRange.filter((s) => {
+            const latest = s.datapoints[s.datapoints.length - 1]
+            if (latest?.value == null) return false
+            if (s.ref_high != null && latest.value > s.ref_high) return true
+            if (s.ref_low != null && latest.value < s.ref_low) return true
+            return false
+          })
+          const summaryText = withRange.length === 0
+            ? null
+            : outOfRange.length === 0
+              ? `All ${series.length} ${category} markers optimal`
+              : `${outOfRange.length} of ${series.length} ${category} markers out of range`
+          const summaryColor = outOfRange.length > 0 ? '#fca5a5' : '#86efac'
+
+          return (
+            <div key={category}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', marginBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', margin: 0 }}>
+                  {category}
+                </h3>
+                {summaryText && (
+                  <span style={{ fontSize: '0.75rem', color: summaryColor }}>
+                    {summaryText}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
+                {series.map((s) => <AnalyteCard key={s.analyte_id} series={s} onClick={() => setSelectedSeries(s)} />)}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </main>
 
       {selectedSeries && (
