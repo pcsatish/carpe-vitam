@@ -26,6 +26,7 @@ class TimeSeriesDatapoint(BaseModel):
     value: float | None
     ref_low: float | None
     ref_high: float | None
+    lab_name: str | None
 
 
 class TimeSeriesSeries(BaseModel):

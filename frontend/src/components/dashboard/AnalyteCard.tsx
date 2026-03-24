@@ -1,4 +1,4 @@
-import { LineChart, Line, ReferenceLine, ReferenceArea, ResponsiveContainer, YAxis } from 'recharts'
+import { LineChart, Line, ReferenceLine, ReferenceArea, ResponsiveContainer, YAxis, Tooltip } from 'recharts'
 import { TimeSeriesSeries } from '../../api/results'
 
 interface AnalyteCardProps {
@@ -41,7 +41,7 @@ export default function AnalyteCard({ series, onClick }: AnalyteCardProps) {
     ? getDeviation(latest.value, series.ref_low, series.ref_high)
     : null
 
-  const chartData = series.datapoints.map((dp) => ({ date: dp.date, value: dp.value }))
+  const chartData = series.datapoints.map((dp) => ({ date: dp.date, value: dp.value, lab_name: dp.lab_name }))
 
   const values = series.datapoints.map((d) => d.value).filter((v): v is number => v != null)
   const allPoints = [...values, series.ref_low, series.ref_high].filter((v): v is number => v != null)
@@ -79,6 +79,17 @@ export default function AnalyteCard({ series, onClick }: AnalyteCardProps) {
         <ResponsiveContainer width="100%" height={60}>
           <LineChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
             <YAxis domain={[min, max]} hide />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              labelStyle={{ display: 'none' }}
+              formatter={(_val: number, _key: string, props: { payload?: { date?: string; lab_name?: string | null } }) => {
+                const d = props.payload
+                const parts = [d?.date ?? '']
+                if (d?.lab_name) parts.push(d.lab_name)
+                return [parts.join(' · '), '']
+              }}
+              separator=""
+            />
             {series.ref_low != null && series.ref_high != null && (
               <ReferenceArea y1={series.ref_low} y2={series.ref_high} fill="#166534" fillOpacity={0.4} />
             )}

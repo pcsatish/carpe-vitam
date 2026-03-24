@@ -91,7 +91,10 @@ async def get_timeseries(
             pass
 
     result = await db.execute(
-        query.order_by(TestResult.report_date).options(selectinload(TestResult.analyte))
+        query.order_by(TestResult.report_date).options(
+            selectinload(TestResult.analyte),
+            selectinload(TestResult.lab_report),
+        )
     )
     test_results = result.scalars().all()
 
@@ -143,6 +146,7 @@ async def get_timeseries(
                 value=tr.canonical_value,
                 ref_low=ref_low,
                 ref_high=ref_high,
+                lab_name=tr.lab_report.lab_name if tr.lab_report else None,
             )
             for tr in data["datapoints"]
         ]
