@@ -56,14 +56,22 @@ class ExtractionPipeline:
         return output
 
     def _get_text_sample(self, file_path: str) -> str:
-        """Get first 1000 chars of text from PDF."""
+        """Get text sampled from the first 5 and last 2 pages of the PDF.
+
+        Some labs (e.g. Thyrocare) put their branding only on the final summary
+        page, so sampling only from the front misses the identifier. The front
+        and tail are each limited independently so the tail is never truncated away.
+        """
         try:
             import pdfplumber
             with pdfplumber.open(file_path) as pdf:
-                if pdf.pages:
-                    text = pdf.pages[0].extract_text()
-                    if text:
-                        return text[:1000]
+                pages = pdf.pages
+                n = len(pages)
+                front_idx = list(range(min(5, n)))
+                tail_idx = [i for i in range(max(0, n - 2), n) if i not in front_idx]
+                front = "\n".join(pages[i].extract_text() or "" for i in front_idx)[:2000]
+                tail = "\n".join(pages[i].extract_text() or "" for i in tail_idx)[:1000]
+                return f"{front}\n{tail}".strip()
         except Exception:
             pass
         return ""

@@ -5,6 +5,7 @@ export interface TimeSeriesDatapoint {
   value: number | null
   ref_low: number | null
   ref_high: number | null
+  lab_name: string | null
 }
 
 export interface TimeSeriesSeries {

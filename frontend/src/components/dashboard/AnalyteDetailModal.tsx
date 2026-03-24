@@ -65,6 +65,7 @@ export default function AnalyteDetailModal({ series, onClose }: Props) {
     date: dp.date,
     value: dp.value,
     label: formatDateShort(dp.date),
+    lab_name: dp.lab_name,
   }))
 
   const values = series.datapoints.map((d) => d.value).filter((v): v is number => v != null)
@@ -162,7 +163,10 @@ export default function AnalyteDetailModal({ series, onClose }: Props) {
               <Tooltip
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem', color: '#ffffff' }}
                 labelStyle={{ color: '#9ca3af', marginBottom: '0.25rem' }}
-                formatter={(value: number) => [`${value} ${series.unit}`, series.analyte_name]}
+                formatter={(value: number, _key: string, props: { payload?: { lab_name?: string | null } }) => {
+                  const lab = props.payload?.lab_name
+                  return [`${value} ${series.unit}${lab ? ` · ${lab}` : ''}`, series.analyte_name]
+                }}
               />
               {series.ref_low != null && series.ref_high != null && (
                 <ReferenceArea y1={series.ref_low} y2={series.ref_high} fill="#166534" fillOpacity={0.25} />
@@ -198,6 +202,7 @@ export default function AnalyteDetailModal({ series, onClose }: Props) {
                 <th style={{ textAlign: 'right', padding: '0.5rem 0.75rem', color: '#6b7280', fontWeight: 500 }}>Value</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: '#6b7280', fontWeight: 500 }}>Unit</th>
                 <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: '#6b7280', fontWeight: 500 }}>Status</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: '#6b7280', fontWeight: 500 }}>Lab</th>
               </tr>
             </thead>
             <tbody>
@@ -219,6 +224,9 @@ export default function AnalyteDetailModal({ series, onClose }: Props) {
                             : rowStatus}
                         </span>
                       ) : '—'}
+                    </td>
+                    <td style={{ padding: '0.625rem 0.75rem', color: '#6b7280', fontSize: '0.8rem' }}>
+                      {dp.lab_name ?? '—'}
                     </td>
                   </tr>
                 )
